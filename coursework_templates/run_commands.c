@@ -13,8 +13,13 @@ void execute_left_side(char** args, int *p) {
   } else if (f == 0) {
     // TODO: Use close and dup to close FD 1, and reopen it by
     // duplicating p[1].
-
+    close(1);
+    dup(p[1]);
+    close(p[0]);
+    close(p[1]);
     // TODO: Execute the command with the exec() system call
+    exec(args[0], args);
+    exit(1);
   }
   // Do not use wait() here as before. Parent should continue
   // in the main method.
@@ -31,10 +36,17 @@ void execute_right_side(char** args, int *p) {
   } else if (f == 0) {
     // TODO: Use close and dup to close FD 0, and reopen it by
     // duplicating p[0].
-
+    close(0);
+    dup(p[0]);
+    close(p[0]);
+    close(p[1]):
     // TODO: Execute the command with the exec() system call
+    exec(args[3], args + 3);
+    exit(1);
   } else {
     // Use wait to wait for both child processes to complete separately.
+    wait(0);
+    wait(0);
   }
 }
 
@@ -60,6 +72,10 @@ int main(int argc, char *argv[]) {
     // means one line has terminated.
     b = buf;
     // TODO: Create a new pipe here on every iteration.
+    if (pipe(p) < 0) {
+      fprintf(2, "run_command: pipe failed\n");
+      exit(1);
+    }
     fprintf(2, "\nPlease enter the first command and press enter (type 'q' to exit):\n");
     while (read(0, b, 1) > 0) {
       if (*b == '\n') {
@@ -68,12 +84,15 @@ int main(int argc, char *argv[]) {
         *b = '\0';
         if (buf[0] == 'q')
           // TODO: exit with the exit() system call.
+	  exit(0)
         else {
           // TODO: Execute the left-hand side.
+	  execute_left_side(args, p);
 
           // TODO: Close write-end of a pipe, otherwise right-hand side child process
           // will continously wait for the data.
-          break;
+          close(p[1]);
+	  break;
         }
       } else if (*b == ' ') {
         // Terminate the string.
@@ -93,7 +112,8 @@ int main(int argc, char *argv[]) {
         // character.
         *b = '\0';
         // TODO: execute the right-hand side command.
-        break;
+        execute_right_side(args, p);
+	break;
       } else if (*b == ' ') {
         // Terminate the string.
         *b = '\0';
