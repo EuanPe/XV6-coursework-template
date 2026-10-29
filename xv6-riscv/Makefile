@@ -152,7 +152,7 @@ UPROGS=\
 	$U/_getyear_test\
 	$U/_run_command\
 	$U/_pingpong0\
-
+	$U/_run_commands\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
